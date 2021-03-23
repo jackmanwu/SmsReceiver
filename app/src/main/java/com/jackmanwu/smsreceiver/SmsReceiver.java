@@ -24,10 +24,10 @@ public class SmsReceiver extends BroadcastReceiver {
         }
         for (Object pdu : pdus) {
             SmsMessage message = SmsMessage.createFromPdu((byte[]) pdu);
-            System.out.println(message.getMessageBody());
             String msg = message.getMessageBody();
+            System.out.println(msg);
             if (msg.contains("xxxxx") && msg.contains("验证码")){
-                new MailTask().execute(message.getMessageBody());
+                new MailTask(null).execute(msg);
             }
         }
     }

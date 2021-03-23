@@ -19,15 +19,17 @@ public class SmsObserver extends ContentObserver {
     }
 
     @Override
-    public void onChange(boolean selfChange) {
-        super.onChange(selfChange);
-        Uri uri = Uri.parse("content://sms/inbox");
-        cursor = context.getContentResolver().query(uri, projection, null, null, "_id desc");
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToNext();
-            int bodyColumn = cursor.getColumnIndex("body");
-            String body = cursor.getString(bodyColumn);
-            listener.onObservedMessage(body);
+    public void onChange(boolean selfChange, Uri uri) {
+        super.onChange(selfChange, uri);
+        System.out.println(uri.toString());
+        if ("content://sms/inbox".equals(uri.toString())) {
+            cursor = context.getContentResolver().query(uri, projection, null, null, "_id desc");
+            if (cursor != null && cursor.getCount() > 0) {
+                cursor.moveToNext();
+                int bodyColumn = cursor.getColumnIndex("body");
+                String body = cursor.getString(bodyColumn);
+                listener.onObservedMessage(body);
+            }
         }
     }
 

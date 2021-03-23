@@ -1,7 +1,10 @@
 package com.jackmanwu.smsreceiver;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.jackmanwu.smsreceiver.db.SmsDao;
 
 import java.util.Properties;
 
@@ -13,18 +16,47 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class MailTask extends AsyncTask<String, Void, Void> {
-    private static final String FROM = "xxxxx@qq.com";
-    private static final String TO = "xxxxxx@qq.com";
+    private static final String FROM = "xxx@qq.com";
+    private static final String TO = "xxx@qq.com";
     private static final String SECRET = "gcjubzvlljeebbeb";
+
+    private final SmsDao smsDao;
+
+    public MailTask(Context context) {
+        super();
+        smsDao = new SmsDao(context);
+    }
 
     @Override
     protected Void doInBackground(String... strings) {
+        int smsId = Integer.parseInt(strings[0]);
+        int oldId = strings.length == 3 ? Integer.parseInt(strings[2]) : -1;
+        String body = strings[1];
+        boolean flag = false;
         for (int i = 0; i < 3; i++) {
             try {
-                sendMail(strings[0]);
-                return null;
+                sendMail(body);
+                flag = true;
+                break;
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+        }
+        if (flag) {
+            for (int i = 0; i < 3; i++) {
+                try {
+                    long id;
+                    if (oldId == -1) {
+                        id = smsDao.save(smsId);
+                    } else {
+                        id = smsDao.updateSuccessState(oldId);
+                    }
+                    if (id > 0) {
+                        break;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         return null;
@@ -37,7 +69,7 @@ public class MailTask extends AsyncTask<String, Void, Void> {
         properties.setProperty("mail.smtp.host", "smtp.qq.com");
 
         Session session = Session.getInstance(properties);
-        session.setDebug(true);
+//        session.setDebug(true);
 
         Transport transport = null;
         try {
